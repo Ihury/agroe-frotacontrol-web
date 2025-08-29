@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, switchMap, of } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { TruckService } from '../../services/truck.service';
 import { ToastService } from '../../services/toast.service';
 import { Truck, CreateTruckDTO, UpdateTruckDTO, NamedCode } from '../../models/truck.model';
@@ -62,10 +62,8 @@ export class TruckFormComponent implements OnInit, OnDestroy {
       if (params['id']) {
         this.isEditMode = true;
         this.truckId = +params['id'];
-        // Definir loading dos inputs imediatamente para evitar flash do formulário vazio
         this.loadingInputs = true;
         this.loadTruckForEdit();
-        // Remove placa do formulário em modo de edição
         this.truckForm.removeControl('licensePlate');
       } else {
         this.isEditMode = false;
@@ -92,11 +90,9 @@ export class TruckFormComponent implements OnInit, OnDestroy {
         next: (truck) => {
           this.currentTruck = truck;
 
-          // Aguardar as marcas serem carregadas antes de configurar o formulário
           if (this.brands.length > 0) {
             this.setupFormForEdit(truck);
           } else {
-            // Se as marcas ainda não foram carregadas, aguardar
             this.truckService
               .getBrands()
               .pipe(takeUntil(this.destroy$))
@@ -105,32 +101,26 @@ export class TruckFormComponent implements OnInit, OnDestroy {
                   this.brands = brands;
                   this.setupFormForEdit(truck);
                 },
-                error: (error) => {
-                  // Apenas o toast será exibido pelo TruckService
+                error: () => {
+                  this.loading = false;
                 },
               });
           }
 
           this.loading = false;
         },
-        error: (error) => {
-          // Apenas o toast será exibido pelo TruckService
+        error: () => {
           this.loading = false;
         },
       });
   }
 
   private setupFormForEdit(truck: Truck): void {
-    // Encontrar os códigos correspondentes aos nomes
     const brand = this.brands.find((b) => b.name === truck.brand);
     if (brand) {
-      // Carregar modelos para esta marca
       this.loadModels(brand.code);
-
-      // Configurar o valor da marca no formulário
       this.truckForm.patchValue({ brand: brand.code });
 
-      // Aguardar os modelos serem carregados para configurar o modelo
       this.truckService
         .getModels(brand.code)
         .pipe(takeUntil(this.destroy$))
@@ -138,16 +128,11 @@ export class TruckFormComponent implements OnInit, OnDestroy {
           next: (models) => {
             this.models = models;
 
-            // Encontrar o modelo correspondente
             const model = models.find((m) => m.name === truck.model);
             if (model) {
-              // Carregar anos para esta marca e modelo
               this.loadYears(brand.code, model.code);
-
-              // Configurar o valor do modelo no formulário
               this.truckForm.patchValue({ model: model.code });
 
-              // Aguardar os anos serem carregados para configurar o ano
               this.truckService
                 .getYears(brand.code, model.code)
                 .pipe(takeUntil(this.destroy$))
@@ -155,37 +140,30 @@ export class TruckFormComponent implements OnInit, OnDestroy {
                   next: (years) => {
                     this.years = years;
 
-                    // Encontrar o ano correspondente
                     const year = years.find((y) => {
                       const yearMatch = y.name.match(/\d{4}/);
                       return yearMatch ? parseInt(yearMatch[0]) === truck.manufacturingYear : false;
                     });
 
                     if (year) {
-                      // Configurar o valor do ano no formulário
                       this.truckForm.patchValue({ manufacturingYear: year.code });
                     }
 
-                    // Finalizar loading dos inputs - todos os dados foram carregados
                     this.loadingInputs = false;
                   },
-                  error: (error) => {
-                    // Apenas o toast será exibido pelo TruckService
+                  error: () => {
                     this.loadingInputs = false;
                   },
                 });
             } else {
-              // Se não encontrar o modelo, finalizar loading
               this.loadingInputs = false;
             }
           },
-          error: (error) => {
-            // Apenas o toast será exibido pelo TruckService
+          error: () => {
             this.loadingInputs = false;
           },
         });
     } else {
-      // Se não encontrar a marca, finalizar loading
       this.loadingInputs = false;
     }
   }
@@ -198,8 +176,8 @@ export class TruckFormComponent implements OnInit, OnDestroy {
         next: (brands) => {
           this.brands = brands;
         },
-        error: (error) => {
-          // Apenas o toast será exibido pelo TruckService
+        error: () => {
+          // Error handled by TruckService
         },
       });
   }
@@ -225,8 +203,8 @@ export class TruckFormComponent implements OnInit, OnDestroy {
         next: (models) => {
           this.models = models;
         },
-        error: (error) => {
-          // Apenas o toast será exibido pelo TruckService
+        error: () => {
+          // Error handled by TruckService
         },
       });
   }
@@ -254,8 +232,8 @@ export class TruckFormComponent implements OnInit, OnDestroy {
         next: (years) => {
           this.years = years;
         },
-        error: (error) => {
-          // Apenas o toast será exibido pelo TruckService
+        error: () => {
+          // Error handled by TruckService
         },
       });
   }
@@ -267,16 +245,13 @@ export class TruckFormComponent implements OnInit, OnDestroy {
     }
 
     this.submitting = true;
-
     const formValue = this.truckForm.value;
 
-    // Converter códigos para valores reais (tanto para criação quanto edição)
     const brandName = this.truckService.getBrandNameByCode(formValue.brand, this.brands);
     const modelName = this.truckService.getModelNameByCode(formValue.model, this.models);
     const yearValue = this.truckService.getYearValueByCode(formValue.manufacturingYear, this.years);
 
     if (this.isEditMode && this.truckId) {
-      // Para edição, usar os nomes reais convertidos dos códigos
       const updateData: UpdateTruckDTO = {
         brand: brandName,
         model: modelName,
@@ -291,13 +266,11 @@ export class TruckFormComponent implements OnInit, OnDestroy {
             this.toastService.showSuccess('Sucesso!', 'Caminhão atualizado com sucesso');
             this.router.navigate(['/trucks']);
           },
-          error: (error) => {
-            // Apenas o toast será exibido pelo TruckService
+          error: () => {
             this.submitting = false;
           },
         });
     } else {
-      // Para criação, usar os nomes reais convertidos dos códigos
       const createData: CreateTruckDTO = {
         licensePlate: formValue.licensePlate,
         brand: brandName,
@@ -313,8 +286,7 @@ export class TruckFormComponent implements OnInit, OnDestroy {
             this.toastService.showSuccess('Sucesso!', 'Caminhão criado com sucesso');
             this.router.navigate(['/trucks']);
           },
-          error: (error) => {
-            // Apenas o toast será exibido pelo TruckService
+          error: () => {
             this.submitting = false;
           },
         });

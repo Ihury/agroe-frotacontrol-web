@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { TruckListComponent } from './components/truck-list/truck-list.component';
 import { TruckFormComponent } from './components/truck-form/truck-form.component';
 

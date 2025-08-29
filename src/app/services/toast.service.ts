@@ -18,25 +18,25 @@ export class ToastService {
   private toastsSubject = new BehaviorSubject<Toast[]>([]);
   public toasts$ = this.toastsSubject.asObservable();
 
-  showSuccess(title: string, message: string, details?: string, duration: number = 5000): void {
+  showSuccess(title: string, message: string, details?: string, duration = 5000): void {
     this.showToast('success', title, message, details, duration);
   }
 
-  showError(title: string, message: string, details?: string, duration: number = 8000): void {
+  showError(title: string, message: string, details?: string, duration = 8000): void {
     this.showToast('error', title, message, details, duration);
   }
 
-  showWarning(title: string, message: string, details?: string, duration: number = 6000): void {
+  showWarning(title: string, message: string, details?: string, duration = 6000): void {
     this.showToast('warning', title, message, details, duration);
   }
 
-  showInfo(title: string, message: string, details?: string, duration: number = 5000): void {
+  showInfo(title: string, message: string, details?: string, duration = 5000): void {
     this.showToast('info', title, message, details, duration);
   }
 
   removeToast(id: string): void {
     const currentToasts = this.toastsSubject.value;
-    const updatedToasts = currentToasts.filter(toast => toast.id !== id);
+    const updatedToasts = currentToasts.filter((toast) => toast.id !== id);
     this.toastsSubject.next(updatedToasts);
   }
 
@@ -45,7 +45,7 @@ export class ToastService {
     title: string,
     message: string,
     details?: string,
-    duration: number = 5000
+    duration = 5000
   ): void {
     const toast: Toast = {
       id: this.generateId(),
@@ -60,7 +60,6 @@ export class ToastService {
     const currentToasts = this.toastsSubject.value;
     this.toastsSubject.next([...currentToasts, toast]);
 
-    // Auto-remove toast after duration
     if (duration > 0) {
       setTimeout(() => {
         this.removeToast(toast.id);
