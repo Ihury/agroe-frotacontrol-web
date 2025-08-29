@@ -1,0 +1,156 @@
+<div class="container">
+  <div class="header">
+    <h1>
+      {{ isEditMode ? 'Editar Caminhão' : 'Novo Caminhão' }}
+    </h1>
+    <p>
+      {{
+        isEditMode
+          ? 'Atualize as informações do caminhão'
+          : 'Preencha as informações para cadastrar um novo caminhão'
+      }}
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Current Truck Information (Edit Mode Only) -->
+  <div *ngIf="isEditMode && currentTruck && !loading" class="current-truck-info">
+    <h3>Informações Atuais</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Placa:</span>
+        <span class="info-value license-plate">{{ currentTruck.licensePlate }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Marca:</span>
+        <span class="info-value">{{ currentTruck.brand }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Modelo:</span>
+        <span class="info-value">{{ currentTruck.model }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Ano de Fabricação:</span>
+        <span class="info-value">{{ currentTruck.manufacturingYear }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Preço FIPE:</span>
+        <span class="info-value price">{{
+          currentTruck.fipePrice | currency : 'BRL' : 'symbol' : '1.2-2'
+        }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Inputs State (Edit Mode Only) -->
+  <div *ngIf="isEditMode && loadingInputs" class="loading-inputs">
+    <div class="spinner"></div>
+    <p>Carregando opções do formulário...</p>
+  </div>
+
+  <!-- Form -->
+  <form
+    *ngIf="!loading && (!isEditMode || !loadingInputs)"
+    [formGroup]="truckForm"
+    (ngSubmit)="onSubmit()"
+    class="form"
+  >
+    <!-- License Plate (only for new trucks) -->
+    <div *ngIf="!isEditMode" class="form-group">
+      <label for="licensePlate" class="form-label"> Placa * </label>
+      <input
+        id="licensePlate"
+        type="text"
+        formControlName="licensePlate"
+        placeholder="ABC1234"
+        class="form-input"
+        [class.invalid]="isFieldInvalid('licensePlate')"
+        maxlength="7"
+        style="text-transform: uppercase"
+      />
+      <p *ngIf="isFieldInvalid('licensePlate')" class="error-text">
+        {{ getFieldError('licensePlate') }}
+      </p>
+      <p class="help-text">Formato: ABC1234 (3 letras + 1 número + 1 alfanumérico + 2 números)</p>
+    </div>
+
+    <!-- Brand -->
+    <div class="form-group">
+      <label for="brand" class="form-label"> Marca * </label>
+      <select
+        id="brand"
+        formControlName="brand"
+        (change)="onBrandChange($event)"
+        class="form-select"
+        [class.invalid]="isFieldInvalid('brand')"
+      >
+        <option value="">Selecione uma marca</option>
+        <option *ngFor="let brand of brands" [value]="brand.code">
+          {{ brand.name }}
+        </option>
+      </select>
+      <p *ngIf="isFieldInvalid('brand')" class="error-text">
+        {{ getFieldError('brand') }}
+      </p>
+    </div>
+
+    <!-- Model -->
+    <div class="form-group">
+      <label for="model" class="form-label"> Modelo * </label>
+      <select
+        id="model"
+        formControlName="model"
+        (change)="onModelChange($event)"
+        class="form-select"
+        [class.invalid]="isFieldInvalid('model')"
+        [disabled]="!brands.length || !truckForm.get('brand')?.value"
+      >
+        <option value="">Selecione um modelo</option>
+        <option *ngFor="let model of models" [value]="model.code">
+          {{ model.name }}
+        </option>
+      </select>
+      <p *ngIf="isFieldInvalid('model')" class="error-text">
+        {{ getFieldError('model') }}
+      </p>
+    </div>
+
+    <!-- Manufacturing Year -->
+    <div class="form-group">
+      <label for="manufacturingYear" class="form-label"> Ano de Fabricação * </label>
+      <select
+        id="manufacturingYear"
+        formControlName="manufacturingYear"
+        class="form-select"
+        [class.invalid]="isFieldInvalid('manufacturingYear')"
+        [disabled]="!models.length || !truckForm.get('model')?.value"
+      >
+        <option value="">Selecione um ano</option>
+        <option *ngFor="let year of years" [value]="year.code">
+          {{ year.name }}
+        </option>
+      </select>
+      <p *ngIf="isFieldInvalid('manufacturingYear')" class="error-text">
+        {{ getFieldError('manufacturingYear') }}
+      </p>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" (click)="onCancel()" class="btn-secondary">Cancelar</button>
+      <button type="submit" [disabled]="truckForm.invalid || submitting" class="btn-primary">
+        <span *ngIf="!submitting">
+          {{ isEditMode ? 'Atualizar' : 'Cadastrar' }}
+        </span>
+        <span *ngIf="submitting" class="submitting">
+          <div class="spinner-small"></div>
+          {{ isEditMode ? 'Atualizando...' : 'Cadastrando...' }}
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

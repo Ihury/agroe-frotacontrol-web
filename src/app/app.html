@@ -1,3 +1,21 @@
-<h1 class="text-3xl font-bold underline">
-  Hello world!
-</h1>
+<header class="header">
+  <div class="header-container">
+    <div class="header-brand">
+      <img
+        src="https://agromercantil.com.br/wp-content/uploads/2025/08/Logotipo-Agromercantil.svg"
+        alt="Agromercantil"
+        class="header-icon"
+      />
+    </div>
+    <nav class="header-nav">
+      <a routerLink="/trucks" class="nav-link"> Frota </a>
+      <a routerLink="/trucks/new" class="nav-button"> Novo Caminhão </a>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+  <router-outlet></router-outlet>
+</main>
+
+<app-toast></app-toast>

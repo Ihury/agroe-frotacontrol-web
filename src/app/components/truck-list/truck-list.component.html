@@ -1,0 +1,104 @@
+<div class="container">
+  <div class="header">
+    <h1>Frota de Caminhões</h1>
+    <button (click)="addNewTruck()" class="btn-primary">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        ></path>
+      </svg>
+      Novo Caminhão
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    <div class="error-content">
+      <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        ></path>
+      </svg>
+      <div>
+        <h3>Erro ao carregar dados</h3>
+        <p>{{ error.message }}</p>
+      </div>
+    </div>
+    <button (click)="retry()" class="btn-error">Tentar Novamente</button>
+  </div>
+
+  <!-- Trucks Table -->
+  <div *ngIf="!loading && !error" class="table-container">
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Placa</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Ano</th>
+            <th>Preço FIPE</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let truck of trucks" class="table-row">
+            <td>
+              <span class="license-plate">{{ truck.licensePlate }}</span>
+            </td>
+            <td>{{ truck.brand }}</td>
+            <td>{{ truck.model }}</td>
+            <td>{{ truck.manufacturingYear }}</td>
+            <td class="price">
+              {{ truck.fipePrice | currency : 'BRL' : 'symbol' : '1.2-2' }}
+            </td>
+            <td class="actions">
+              <div class="action-buttons">
+                <button (click)="editTruck(truck)" class="btn-edit">Editar</button>
+                <button (click)="deleteTruck(truck)" class="btn-delete">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="trucks.length === 0" class="empty-state">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+        ></path>
+      </svg>
+      <h3>Nenhum caminhão encontrado</h3>
+      <p>Comece adicionando o primeiro caminhão à sua frota.</p>
+      <div class="empty-actions">
+        <button (click)="addNewTruck()" class="btn-primary">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            ></path>
+          </svg>
+          Adicionar Caminhão
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
